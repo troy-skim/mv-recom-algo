@@ -20,3 +20,6 @@ F. Maxwell Harper and Joseph A. Konstan. 2015. The MovieLens Datasets: History a
 Run the following script to automatically download the dataset:
 ```bash
 python download_data.py
+```
+
+## Depenencies
