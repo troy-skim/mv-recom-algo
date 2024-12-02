@@ -8,7 +8,7 @@ def load_data(ratings_path, movies_path):
     movies = pd.read_csv(movies_path)
     return ratings, movies
 
-def create_sparse_matrix(ratings):
+def create_sparse_matrix(ratings, movies):
     # generate sparse matrix from ratings dataframe
     # return matrix, user mapping dictionary, movie mapping dictionary
     user_mapper = {user: idx for idx, user in enumerate(ratings["userId"].unique())}
@@ -19,4 +19,7 @@ def create_sparse_matrix(ratings):
 
     sparse_matrix = csr_matrix((ratings["rating"], (user_idx, movie_idx)))
 
-    return sparse_matrix, user_mapper, movie_mapper
+    movieId_to_title = {movieId: movie for movieId, movie in movies[["movieId", "title"]].itertuples(index = False)}
+    movieTitle_to_Id = {movie: movieId for movieId, movie in movies[["movieId", "title"]].itertuples(index = False)}
+
+    return sparse_matrix, user_mapper, movie_mapper, movieId_to_title, movieTitle_to_Id
