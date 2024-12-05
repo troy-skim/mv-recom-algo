@@ -4,14 +4,141 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Movie Recommendation System</title>
+    <style>
+        .movie {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .actions button {
+            margin-left: 5px;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .like {
+            background-color: #28a745;
+            color: white;
+        }
+        .dislike {
+            background-color: #dc3545;
+            color: white;
+        }
+        .greyed {
+            background-color: #d3d3d3;
+            color: #808080;
+            cursor: not-allowed;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
     <h1>Movie Recommendation System</h1>
+    
+    <!-- Existing Form for Title-Based Recommendation -->
     <form action="/results" method="get">
         <label for="title">Enter Movie Title for Recommendation:</label>
         <input type="text" id="title" name="title"><br><br>
 
         <input type="submit" value="Get Recommendations">
     </form>
+
+    <hr>
+
+    <!-- Section for Random Movie List -->
+    <h2>Discover Random Movies</h2>
+    <div id="movie-list">
+        <!-- Random movies will be displayed here -->
+    </div>
+    <button onclick="loadMovies()">Load More Movies</button>
+
+    <hr>
+
+    <!-- Section for Generating Recommendations -->
+    <h2>Personalized Recommendations</h2>
+    <button onclick="getRecommendations()">Get Personalized Recommendations</button>
+    <div id="recommendation-list">
+        <!-- Personalized recommendations will be displayed here -->
+    </div>
+    <div id="error-message" class="error"></div>
+
+    <script>
+        const movieListDiv = document.getElementById("movie-list");
+        const recommendationListDiv = document.getElementById("recommendation-list");
+        const errorMessageDiv = document.getElementById("error-message");
+    
+        // Function to Load Random Movies
+        function loadMovies() {
+            fetch("/movies?num=10")
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(movie => {
+                        const movieDiv = document.createElement("div");
+                        movieDiv.className = "movie";
+                        movieDiv.innerHTML = `
+                            <span>${movie.title}</span>
+                            <div class="actions">
+                                <button class="like" onclick="sendFeedback(${movie.movieId}, "like", this)">Like</button>
+                                <button class="dislike" onclick="sendFeedback(${movie.movieId}, "dislike", this)">Dislike</button>
+                            </div>
+                        `;
+                        movieListDiv.appendChild(movieDiv);
+                    });
+                })
+                .catch(err => console.error("Error fetching movies:", err));
+        }
+    
+        // Function to Send User Feedback
+        function sendFeedback(movieId, action, button) {
+            fetch("/feedback", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ movieId, action }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Feedback recorded:", data);
+    
+                    // Disable the clicked button and turn it grey
+                    button.classList.add("greyed");
+                    button.disabled = true;
+                })
+                .catch(err => console.error("Error sending feedback:", err));
+        }
+    
+        // Function to Get Personalized Recommendations
+        function getRecommendations() {
+            fetch("/recommend")
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("No recommendations available.");
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    recommendationListDiv.innerHTML = "";
+                    data.forEach(movie => {
+                        const recommendationDiv = document.createElement("div");
+                        recommendationDiv.innerText = movie;
+                        recommendationListDiv.appendChild(recommendationDiv);
+                    });
+                    errorMessageDiv.innerText = ""; // Clear any previous error messages
+                })
+                .catch(err => {
+                    console.error("Error fetching recommendations:", err);
+                    errorMessageDiv.innerText = "No recommendations available. Please like some movies first.";
+                });
+        }
+    </script>
 </body>
 </html>
