@@ -13,11 +13,11 @@ def recommend_by_genre(title, movies, cosine_sim, n=10):
     if not matched_title:
         return [f"No close matches found for '{title}'."]
 
-    idx = movies[movies['title'] == matched_title].index[0]
+    idx = movies[movies["title"] == matched_title].index[0]
 
     sim_scores = list(enumerate(cosine_sim[idx]))
     sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
     sim_scores = sim_scores[1:n+1]
 
-    recommended_titles = [movies['title'].iloc[i[0]] for i in sim_scores]
+    recommended_titles = [movies["title"].iloc[i[0]] for i in sim_scores]
     return recommended_titles
