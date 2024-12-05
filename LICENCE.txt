@@ -12,3 +12,10 @@ Neither the University of Minnesota nor any of the researchers involved can guar
 In no event shall the University of Minnesota, its affiliates or employees be liable to you for any damages arising out of the use or inability to use these programs (including but not limited to loss of data or data being rendered inaccurate).
 
 If you have any further questions or comments, please email <grouplens-info@umn.edu>
+
+=============
+
+This application uses data from the Open Movie Database (OMDb API). 
+The OMDb API is licensed under the terms available at https://www.omdbapi.com/.
+
+The inclusion of OMDb data in this application does not imply endorsement by OMDb.

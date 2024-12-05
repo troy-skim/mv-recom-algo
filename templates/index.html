@@ -29,10 +29,14 @@
             background-color: #dc3545;
             color: white;
         }
-        .greyed {
-            background-color: #d3d3d3;
-            color: #808080;
-            cursor: not-allowed;
+        .inactive {
+        background-color: #d3d3d3;
+        color: #808080;
+        cursor: not-allowed;
+        }
+        .active {
+            cursor: pointer;
+            opacity: 1;
         }
         .error {
             color: red;
@@ -43,7 +47,6 @@
 <body>
     <h1>Movie Recommendation System</h1>
     
-    <!-- Existing Form for Title-Based Recommendation -->
     <form action="/results" method="get">
         <label for="title">Enter Movie Title for Recommendation:</label>
         <input type="text" id="title" name="title"><br><br>
@@ -53,7 +56,6 @@
 
     <hr>
 
-    <!-- Section for Random Movie List -->
     <h2>Discover Random Movies</h2>
     <div id="movie-list">
         <!-- Random movies will be displayed here -->
@@ -62,9 +64,8 @@
 
     <hr>
 
-    <!-- Section for Generating Recommendations -->
     <h2>Personalized Recommendations</h2>
-    <button onclick="getRecommendations()">Get Personalized Recommendations</button>
+    <button onclick="window.location.href='/recommend'">Get Personalized Recommendations</button>
     <div id="recommendation-list">
         <!-- Personalized recommendations will be displayed here -->
     </div>
@@ -75,7 +76,6 @@
         const recommendationListDiv = document.getElementById("recommendation-list");
         const errorMessageDiv = document.getElementById("error-message");
     
-        // Function to Load Random Movies
         function loadMovies() {
             fetch("/movies?num=10")
                 .then(response => response.json())
@@ -96,29 +96,56 @@
                 .catch(err => console.error("Error fetching movies:", err));
         }
     
-        // Function to Send User Feedback
         function sendFeedback(movieId, action, button) {
+            const likeButton = button.parentElement.querySelector(".like");
+            const dislikeButton = button.parentElement.querySelector(".dislike");
+
+            const isAlreadyClicked = button.classList.contains("greyed");
+
+            const newAction = isAlreadyClicked ? "remove" : action;
+
             fetch("/feedback", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ movieId, action }),
+                body: JSON.stringify({
+                    movieId: movieId,
+                    action: newAction,
+                }),
             })
-                .then(response => response.json())
-                .then(data => {
-                    console.log("Feedback recorded:", data);
-    
-                    // Disable the clicked button and turn it grey
-                    button.classList.add("greyed");
-                    button.disabled = true;
+                .then((response) => response.json())
+                .then((data) => {
+                    console.log("Feedback response:", data);
+
+                    if (newAction === "remove") {
+                        likeButton.classList.remove("greyed", "inactive");
+                        likeButton.classList.add("active");
+                        likeButton.disabled = false;
+
+                        dislikeButton.classList.remove("greyed", "inactive");
+                        dislikeButton.classList.add("active");
+                        dislikeButton.disabled = false;
+                    } else {
+                        if (action === "like") {
+                            dislikeButton.classList.add("inactive");
+                            dislikeButton.disabled = true;
+                        } else if (action === "dislike") {
+                            likeButton.classList.add("inactive");
+                            likeButton.disabled = true;
+                        }
+                        button.classList.remove("inactive");
+                        button.classList.add("greyed");
+                        button.disabled = false;
+                    }
                 })
-                .catch(err => console.error("Error sending feedback:", err));
+                .catch((err) => {
+                    console.error("Error sending feedback:", err);
+                });
         }
     
-        // Function to Get Personalized Recommendations
         function getRecommendations() {
-            fetch("/recommend")
+            fetch("/api/recommend")
                 .then(response => {
                     if (!response.ok) {
                         throw new Error("No recommendations available.");
@@ -129,10 +156,14 @@
                     recommendationListDiv.innerHTML = "";
                     data.forEach(movie => {
                         const recommendationDiv = document.createElement("div");
-                        recommendationDiv.innerText = movie;
+                        recommendationDiv.className = "movie-card";
+                        recommendationDiv.innerHTML = `
+                            ${movie.poster_url ? `<img src="${movie.poster_url}" alt="${movie.title}" style="max-width: 100%; border-radius: 5px;">` : ""}
+                            <h3>${movie.title}</h3>
+                        `;
                         recommendationListDiv.appendChild(recommendationDiv);
                     });
-                    errorMessageDiv.innerText = ""; // Clear any previous error messages
+                    errorMessageDiv.innerText = "";
                 })
                 .catch(err => {
                     console.error("Error fetching recommendations:", err);
