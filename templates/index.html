@@ -86,8 +86,8 @@
                         movieDiv.innerHTML = `
                             <span>${movie.title}</span>
                             <div class="actions">
-                                <button class="like" onclick="sendFeedback(${movie.movieId}, "like", this)">Like</button>
-                                <button class="dislike" onclick="sendFeedback(${movie.movieId}, "dislike", this)">Dislike</button>
+                                <button class="like" onclick="sendFeedback(${movie.movieId}, 'like', this)">Like</button>
+                                <button class="dislike" onclick="sendFeedback(${movie.movieId}, 'dislike', this)">Dislike</button>
                             </div>
                         `;
                         movieListDiv.appendChild(movieDiv);
