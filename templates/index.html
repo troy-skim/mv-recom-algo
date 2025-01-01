@@ -4,39 +4,68 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Movie Recommendation System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
         .movie {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             margin: 10px 0;
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 5px;
-            background-color: #f9f9f9;
+            background-color: #fff;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .movie:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
         .actions button {
             margin-left: 5px;
-            padding: 5px 10px;
+            padding: 10px 15px;
             border: none;
-            border-radius: 3px;
+            border-radius: 5px;
             cursor: pointer;
+            font-size: 14px;
         }
         .like {
             background-color: #28a745;
             color: white;
         }
+        .like:hover {
+            background-color: #218838;
+        }
         .dislike {
             background-color: #dc3545;
             color: white;
         }
-        .inactive {
-        background-color: #d3d3d3;
-        color: #808080;
-        cursor: not-allowed;
+        .dislike:hover {
+            background-color: #c82333;
         }
-        .active {
-            cursor: pointer;
-            opacity: 1;
+        .like.active {
+            background-color: #145a32;
+            color: white;
+        }
+
+        .dislike.active {
+            background-color: #7b1d24;
+            color: white;
+        }
+        .greyed {
+            background-color: #d3d3d3;
+            color: #808080;
+            cursor: not-allowed;
         }
         .error {
             color: red;
@@ -47,23 +76,25 @@
 <body>
     <h1>Movie Recommendation System</h1>
     
+    <!-- Form for Title-Based Recommendation -->
     <form action="/results" method="get">
         <label for="title">Enter Movie Title for Recommendation:</label>
         <input type="text" id="title" name="title"><br><br>
-
         <input type="submit" value="Get Recommendations">
     </form>
 
     <hr>
 
+    <!-- Discover Random Movies -->
     <h2>Discover Random Movies</h2>
     <div id="movie-list">
-        <!-- Random movies will be displayed here -->
+        <!-- Random movies will be dynamically loaded here -->
     </div>
     <button onclick="loadMovies()">Load More Movies</button>
 
     <hr>
 
+    <!-- Personalized Recommendations -->
     <h2>Personalized Recommendations</h2>
     <button onclick="window.location.href='/recommend'">Get Personalized Recommendations</button>
     <div id="recommendation-list">
@@ -75,7 +106,7 @@
         const movieListDiv = document.getElementById("movie-list");
         const recommendationListDiv = document.getElementById("recommendation-list");
         const errorMessageDiv = document.getElementById("error-message");
-    
+
         function loadMovies() {
             fetch("/movies?num=10")
                 .then(response => response.json())
@@ -95,55 +126,67 @@
                 })
                 .catch(err => console.error("Error fetching movies:", err));
         }
-    
+
         function sendFeedback(movieId, action, button) {
-            const likeButton = button.parentElement.querySelector(".like");
-            const dislikeButton = button.parentElement.querySelector(".dislike");
+    const likeButton = button.parentElement.querySelector(".like");
+    const dislikeButton = button.parentElement.querySelector(".dislike");
 
-            const isAlreadyClicked = button.classList.contains("greyed");
+    // Check if the clicked button is already in the greyed state
+    const isAlreadyClicked = button.classList.contains("active");
 
-            const newAction = isAlreadyClicked ? "remove" : action;
+    // Determine the action: "remove" or the actual action ("like" / "dislike")
+    const newAction = isAlreadyClicked ? "remove" : action;
 
-            fetch("/feedback", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    movieId: movieId,
-                    action: newAction,
-                }),
-            })
-                .then((response) => response.json())
-                .then((data) => {
-                    console.log("Feedback response:", data);
+    fetch("/feedback", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            movieId: movieId,
+            action: newAction,
+        }),
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            console.log("Feedback response:", data);
 
-                    if (newAction === "remove") {
-                        likeButton.classList.remove("greyed", "inactive");
-                        likeButton.classList.add("active");
-                        likeButton.disabled = false;
+            if (newAction === "remove") {
+                // Reset both buttons to active state
+                likeButton.classList.remove("greyed", "active");
+                likeButton.disabled = false;
 
-                        dislikeButton.classList.remove("greyed", "inactive");
-                        dislikeButton.classList.add("active");
-                        dislikeButton.disabled = false;
-                    } else {
-                        if (action === "like") {
-                            dislikeButton.classList.add("inactive");
-                            dislikeButton.disabled = true;
-                        } else if (action === "dislike") {
-                            likeButton.classList.add("inactive");
-                            likeButton.disabled = true;
-                        }
-                        button.classList.remove("inactive");
-                        button.classList.add("greyed");
-                        button.disabled = false;
-                    }
-                })
-                .catch((err) => {
-                    console.error("Error sending feedback:", err);
-                });
-        }
-    
+                dislikeButton.classList.remove("greyed", "active");
+                dislikeButton.disabled = false;
+            } else {
+                if (action === "like") {
+                    // Grey out and disable the Dislike button
+                    dislikeButton.classList.add("greyed");
+                    dislikeButton.classList.remove("active");
+                    dislikeButton.disabled = true;
+
+                    // Highlight the Like button
+                    likeButton.classList.add("active");
+                    likeButton.classList.remove("greyed");
+                    likeButton.disabled = false;
+                } else if (action === "dislike") {
+                    // Grey out and disable the Like button
+                    likeButton.classList.add("greyed");
+                    likeButton.classList.remove("active");
+                    likeButton.disabled = true;
+
+                    // Highlight the Dislike button
+                    dislikeButton.classList.add("active");
+                    dislikeButton.classList.remove("greyed");
+                    dislikeButton.disabled = false;
+                }
+            }
+        })
+        .catch((err) => {
+            console.error("Error sending feedback:", err);
+        });
+}
+
         function getRecommendations() {
             fetch("/api/recommend")
                 .then(response => {

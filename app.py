@@ -52,6 +52,7 @@ def record_feedback():
         if movie_id in user_dislikes:
             user_dislikes.remove(movie_id)
 
+    print(f"Updated preferences -> likes: {user_likes} dislikes: {user_dislikes}")
     return jsonify({"message": "Feedback recorded", "likes": user_likes, "dislikes": user_dislikes})
 
 @app.route("/api/recommend", methods=["GET"])
