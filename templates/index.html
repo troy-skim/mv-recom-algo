@@ -1,121 +1,78 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Movie Recommendation System</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-            margin: 20px;
-            padding: 20px;
-            background-color: #f9f9f9;
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-        }
-        .movie {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin: 10px 0;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background-color: #fff;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .movie:hover {
-            transform: scale(1.02);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-        .actions button {
-            margin-left: 5px;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        .like {
-            background-color: #28a745;
-            color: white;
-        }
-        .like:hover {
-            background-color: #218838;
-        }
-        .dislike {
-            background-color: #dc3545;
-            color: white;
-        }
-        .dislike:hover {
-            background-color: #c82333;
-        }
-        .like.active {
-            background-color: #145a32;
-            color: white;
-        }
+{% extends "base.html" %}
 
-        .dislike.active {
-            background-color: #7b1d24;
+{% block content %}
+    <style>
+        .centered-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 60vh;
+        }
+        .form-container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .form-container input[type="text"] {
+            padding: 10px;
+            margin: 15px 0;
+            font-size: 18px;
+            width: 80%;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .form-container input[type="submit"] {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007BFF;
             color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
         }
-        .greyed {
-            background-color: #d3d3d3;
-            color: #808080;
-            cursor: not-allowed;
-        }
-        .error {
-            color: red;
-            font-weight: bold;
+        .form-container input[type="submit"]:hover {
+            background-color: #0056b3;
         }
     </style>
-</head>
-<body>
-    <h1>Movie Recommendation System</h1>
-    
-    <!-- Form for Title-Based Recommendation -->
-    <form action="/results" method="get">
-        <label for="title">Enter Movie Title for Recommendation:</label>
-        <input type="text" id="title" name="title"><br><br>
-        <input type="submit" value="Get Recommendations">
-    </form>
 
-    <hr>
-
-    <!-- Discover Random Movies -->
-    <h2>Discover Random Movies</h2>
-    <div id="movie-list">
-        <!-- Random movies will be dynamically loaded here -->
+    <div class="centered-form">
+        <div class="form-container">
+            <form action="/results" method="get">
+                <label for="title" style="font-size: 20px; font-weight: bold;">Search for a movie:</label>
+                <input type="text" id="title" name="title" placeholder="Enter movie title" required>
+                <input type="submit" value="Get Recommendations">
+            </form>
+        </div>
     </div>
-    <button onclick="loadMovies()">Load More Movies</button>
 
-    <hr>
+    <h3 style="text-align: center;">Get Recommendations Based On Your Preferences</h3>
+    <div id="movie-list" class="recommendation-grid"></div>
+    <button onclick="loadMovies()" class="center-button">Load More Movies</button>
 
-    <!-- Personalized Recommendations -->
-    <h2>Personalized Recommendations</h2>
-    <button onclick="window.location.href='/recommend'">Get Personalized Recommendations</button>
-    <div id="recommendation-list">
-        <!-- Personalized recommendations will be displayed here -->
-    </div>
-    <div id="error-message" class="error"></div>
+    <!-- New "Get Recommendations" Button -->
+    <button id="recommend-btn" onclick="window.location.href='/recommend'" class="center-button greyed" disabled>
+       Get Recommendations
+    </button>
 
     <script>
         const movieListDiv = document.getElementById("movie-list");
-        const recommendationListDiv = document.getElementById("recommendation-list");
-        const errorMessageDiv = document.getElementById("error-message");
+        const recommendButton = document.getElementById("recommend-btn");
+        let userInteracted = false;
 
         function loadMovies() {
-            fetch("/movies?num=10")
+            fetch("/movies?num=12") // Fetch 12 movies
                 .then(response => response.json())
                 .then(data => {
                     data.forEach(movie => {
                         const movieDiv = document.createElement("div");
-                        movieDiv.className = "movie";
+                        movieDiv.className = "movie-card";
                         movieDiv.innerHTML = `
-                            <span>${movie.title}</span>
+                            <img src="${movie.poster_url}" alt="${movie.title}">
+                            <h3>${movie.title}</h3>
                             <div class="actions">
                                 <button class="like" onclick="sendFeedback(${movie.movieId}, 'like', this)">Like</button>
                                 <button class="dislike" onclick="sendFeedback(${movie.movieId}, 'dislike', this)">Dislike</button>
@@ -128,91 +85,55 @@
         }
 
         function sendFeedback(movieId, action, button) {
-    const likeButton = button.parentElement.querySelector(".like");
-    const dislikeButton = button.parentElement.querySelector(".dislike");
+            const likeButton = button.parentElement.querySelector(".like");
+            const dislikeButton = button.parentElement.querySelector(".dislike");
 
-    // Check if the clicked button is already in the greyed state
-    const isAlreadyClicked = button.classList.contains("active");
+            // Check if the clicked button is already in the "active" state
+            const isAlreadyClicked = button.classList.contains("active");
 
-    // Determine the action: "remove" or the actual action ("like" / "dislike")
-    const newAction = isAlreadyClicked ? "remove" : action;
+            // Determine the action: "remove" or the actual action ("like" or "dislike")
+            const newAction = isAlreadyClicked ? "remove" : action;
 
-    fetch("/feedback", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            movieId: movieId,
-            action: newAction,
-        }),
-    })
-        .then((response) => response.json())
-        .then((data) => {
-            console.log("Feedback response:", data);
+            fetch("/feedback", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    movieId: movieId,
+                    action: newAction,
+                }),
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    console.log("Feedback response:", data);
 
-            if (newAction === "remove") {
-                // Reset both buttons to active state
-                likeButton.classList.remove("greyed", "active");
-                likeButton.disabled = false;
-
-                dislikeButton.classList.remove("greyed", "active");
-                dislikeButton.disabled = false;
-            } else {
-                if (action === "like") {
-                    // Grey out and disable the Dislike button
-                    dislikeButton.classList.add("greyed");
-                    dislikeButton.classList.remove("active");
-                    dislikeButton.disabled = true;
-
-                    // Highlight the Like button
-                    likeButton.classList.add("active");
-                    likeButton.classList.remove("greyed");
-                    likeButton.disabled = false;
-                } else if (action === "dislike") {
-                    // Grey out and disable the Like button
-                    likeButton.classList.add("greyed");
-                    likeButton.classList.remove("active");
-                    likeButton.disabled = true;
-
-                    // Highlight the Dislike button
-                    dislikeButton.classList.add("active");
-                    dislikeButton.classList.remove("greyed");
-                    dislikeButton.disabled = false;
-                }
-            }
-        })
-        .catch((err) => {
-            console.error("Error sending feedback:", err);
-        });
-}
-
-        function getRecommendations() {
-            fetch("/api/recommend")
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error("No recommendations available.");
+                    if (newAction === "remove") {
+                        // Reset both buttons to default state
+                        likeButton.classList.remove("active", "greyed");
+                        dislikeButton.classList.remove("active", "greyed");
+                        likeButton.disabled = false;
+                        dislikeButton.disabled = false;
+                    } else if (action === "like") {
+                        // Set the like button to active and disable the dislike button
+                        likeButton.classList.add("active");
+                        dislikeButton.classList.add("greyed");
+                        dislikeButton.disabled = true;
+                    } else if (action === "dislike") {
+                        // Set the dislike button to active and disable the like button
+                        dislikeButton.classList.add("active");
+                        likeButton.classList.add("greyed");
+                        likeButton.disabled = true;
                     }
-                    return response.json();
+                    if (!userInteracted) {
+                        recommendButton.classList.remove("greyed");
+                        recommendButton.disabled = false; // Enable the button
+                        userInteracted = true; // Mark that the user has interacted
+                    }
                 })
-                .then(data => {
-                    recommendationListDiv.innerHTML = "";
-                    data.forEach(movie => {
-                        const recommendationDiv = document.createElement("div");
-                        recommendationDiv.className = "movie-card";
-                        recommendationDiv.innerHTML = `
-                            ${movie.poster_url ? `<img src="${movie.poster_url}" alt="${movie.title}" style="max-width: 100%; border-radius: 5px;">` : ""}
-                            <h3>${movie.title}</h3>
-                        `;
-                        recommendationListDiv.appendChild(recommendationDiv);
-                    });
-                    errorMessageDiv.innerText = "";
-                })
-                .catch(err => {
-                    console.error("Error fetching recommendations:", err);
-                    errorMessageDiv.innerText = "No recommendations available. Please like some movies first.";
+                .catch((err) => {
+                    console.error("Error sending feedback:", err);
                 });
         }
     </script>
-</body>
-</html>
+{% endblock %}

@@ -21,10 +21,20 @@ def home():
 
 @app.route("/movies", methods=["GET"])
 def get_random_movies():
-    # Number of movies to show (default 10)
-    num_movies = int(request.args.get("num", 10))
+    # Number of movies to show (default 12)
+    num_movies = int(request.args.get("num", 12))
     random_movies = movies.sample(num_movies)
-    movie_list = random_movies[["movieId", "title"]].to_dict(orient="records")
+
+    # Add poster URLs to the response
+    movie_list = []
+    for _, movie in random_movies.iterrows():
+        poster_url = fetch_omdb_poster(movie["title"])  # Fetch poster using the utility function
+        movie_list.append({
+            "movieId": movie["movieId"],
+            "title": movie["title"],
+            "poster_url": poster_url or "/static/images/default-poster.jpg",  # Fallback to default poster
+        })
+
     return jsonify(movie_list)
 
 @app.route("/feedback", methods=["POST"])

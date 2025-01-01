@@ -1,66 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Personalized Recommendations</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            padding: 20px;
-            background-color: #f9f9f9;
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-        }
-        .recommendation-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-        }
-        .movie-card {
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background-color: #fff;
-            padding: 15px;
-            text-align: center;
-        }
-        .movie-card h3 {
-            font-size: 18px;
-            color: #555;
-        }
-        .movie-card p {
-            font-size: 14px;
-            color: #777;
-        }
-        .back-link {
-            display: block;
-            margin-top: 20px;
-            text-align: center;
-            font-size: 16px;
-            color: #007BFF;
-            text-decoration: none;
-        }
-        .back-link:hover {
-            text-decoration: underline;
-        }
-    </style>
-</head>
-<body>
-    <h1>Your Personalized Recommendations</h1>
-    <h1>Based on {{ title }}</h1>
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Recommendations Based on "{{ title }}"</h1>
     <div class="recommendation-grid">
         {% for movie in recommendations %}
         <div class="movie-card">
             {% if movie.poster_url %}
-            <img src="{{ movie.poster_url }}" alt="{{ movie.title }}" style="max-width: 100%; border-radius: 5px;">
+            <img src="{{ movie.poster_url }}" alt="{{ movie.title }}">
             {% endif %}
             <h3>{{ movie.title }}</h3>
         </div>
         {% endfor %}
     </div>
-    <a class="back-link" href="/">Go Back to Home</a>
-</body>
-</html>
+    <button onclick="window.location.href='/'" class="center-button">Go Back to Home</button>
+{% endblock %}
