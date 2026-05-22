@@ -2,6 +2,8 @@
 
 A project to implement a movie recommendation algorithm that provides personalized movie suggestions based on user preferences. The recommendation system is accessible via a web interface.
 
+> Archived student project. Built as an early recommendation-systems project to explore collaborative filtering, content-based filtering, and Flask web apps. Not actively maintained.
+
 ---
 
 ## **Project Description**
@@ -119,4 +121,12 @@ python app.py
 
 ---
 
-Feel free to contribute or report issues! 😊
+## **Limitations**
+
+- User likes and dislikes are stored in process memory and are not persisted per user.
+- The OMDb API key must be provided locally.
+- The app uses the MovieLens small dataset and is intended for demonstration, not production use.
+
+---
+
+This repository is kept public as an archived learning project.
