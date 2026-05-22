@@ -10,7 +10,11 @@ import random
 app = Flask(__name__)
 
 # Load the ratings and movies data from CSV files
-ratings, movies = load_data("/Users/troy_skim/Desktop/cs_projects/mv-recom-algo/data/raw/ml-latest-small/ratings.csv", "/Users/troy_skim/Desktop/cs_projects/mv-recom-algo/data/raw/ml-latest-small/movies.csv")
+DATA_DIR = os.getenv("MOVIELENS_DATA_DIR", "data/raw/ml-latest-small")
+ratings, movies = load_data(
+    os.path.join(DATA_DIR, "ratings.csv"),
+    os.path.join(DATA_DIR, "movies.csv"),
+)
 
 # Create a sparse matrix for collaborative filtering and mapping dictionaries
 sparse_matrix, user_mapper, movie_mapper, movieId_to_title, movieTitle_to_Id = create_sparse_matrix(ratings, movies)
